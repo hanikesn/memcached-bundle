@@ -1,33 +1,36 @@
 <?php
 namespace Lsw\MemcacheBundle\Doctrine\Cache;
 
-use \Memcached;
-
 use Doctrine\Common\Cache\Cache;
 use Doctrine\Common\Cache\CacheProvider;
+use Lsw\MemcacheBundle\Cache\MemcacheInterface;
 
 /**
- * Memcached cache provider (with prefix support).
+ * Memcached cache provider.
  *
- * Based on: Doctrine/Common/Cache/MemcacheCache.php
+ * @link   www.doctrine-project.org
+ * @since  2.2
+ * @author Benjamin Eberlei <kontakt@beberlei.de>
+ * @author Guilherme Blanco <guilhermeblanco@hotmail.com>
+ * @author Jonathan Wage <jonwage@gmail.com>
+ * @author Roman Borschel <roman@code-factory.org>
+ * @author David Abdemoulaie <dave@hobodave.com>
  */
 class MemcachedCache extends CacheProvider
 {
     /**
-     * @var Memcached
+     * @var MemcacheInterface|null
      */
     private $memcached;
-    /**
-     * @var string prefix
-     */
-    private $prefix;
 
     /**
-     * Sets the memcached instance to use.
+     * Sets the memcache instance to use.
      *
-     * @param Memcached $memcached
+     * @param MemcacheInterface $memcached
+     *
+     * @return void
      */
-    public function setMemcached(Memcached $memcached)
+    public function setMemcached(MemcacheInterface $memcached)
     {
         $this->memcached = $memcached;
     }
@@ -35,7 +38,7 @@ class MemcachedCache extends CacheProvider
     /**
      * Gets the memcached instance used by the cache.
      *
-     * @return Memcached
+     * @return MemcacheInterface|null
      */
     public function getMemcached()
     {
@@ -43,31 +46,19 @@ class MemcachedCache extends CacheProvider
     }
 
     /**
-     * Sets the prefix to use.
-     *
-     * @param string $prefix
+     * {@inheritdoc}
      */
-    public function setPrefix($prefix)
+    protected function doFetch($id)
     {
-      $this->prefix = $prefix;
-    }
-
-    /**
-     * Gets the prefix used by the cache.
-     *
-     * @return string
-     */
-    public function getPrefix()
-    {
-      return $this->prefix;
+        return $this->memcached->get($id);
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function doFetch($id)
+    protected function doFetchMultiple(array $keys)
     {
-        return $this->memcached->get($this->prefix.$id);
+        return $this->memcached->getMulti($keys);
     }
 
     /**
@@ -75,7 +66,7 @@ class MemcachedCache extends CacheProvider
      */
     protected function doContains($id)
     {
-        return (bool) $this->memcached->get($this->prefix.$id);
+        return (false !== $this->memcached->get($id));
     }
 
     /**
@@ -86,7 +77,7 @@ class MemcachedCache extends CacheProvider
         if ($lifeTime > 30 * 24 * 3600) {
             $lifeTime = time() + $lifeTime;
         }
-        return $this->memcached->set($this->prefix.$id, $data, (int) $lifeTime);
+        return $this->memcached->set($id, $data, (int) $lifeTime);
     }
 
     /**
@@ -94,7 +85,7 @@ class MemcachedCache extends CacheProvider
      */
     protected function doDelete($id)
     {
-        return $this->memcached->delete($this->prefix.$id);
+        return $this->memcached->delete($id);
     }
 
     /**
@@ -110,13 +101,16 @@ class MemcachedCache extends CacheProvider
      */
     protected function doGetStats()
     {
-        $stats = $this->memcached->getStats();
+        $stats   = $this->memcached->getStats();
+        $servers = $this->memcached->getServerList();
+        $key     = $servers[0]['host'] . ':' . $servers[0]['port'];
+        $stats   = $stats[$key];
         return array(
             Cache::STATS_HITS   => $stats['get_hits'],
             Cache::STATS_MISSES => $stats['get_misses'],
             Cache::STATS_UPTIME => $stats['uptime'],
-            Cache::STATS_MEMORY_USAGE       => $stats['bytes'],
-            Cache::STATS_MEMORY_AVAILIABLE  => $stats['limit_maxbytes'],
+            Cache::STATS_MEMORY_USAGE     => $stats['bytes'],
+            Cache::STATS_MEMORY_AVAILABLE => $stats['limit_maxbytes'],
         );
     }
 }

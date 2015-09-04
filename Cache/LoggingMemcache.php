@@ -1397,6 +1397,15 @@ if ($extension->getVersion()=='1.0.2') {
             $this->calls[] = (object) compact('start', 'time', 'name', 'arguments', 'result');
             return $result;
         }
+        public function getAllKeys() {
+            if (!$this->logging) return $this->memcached->getAllKeys();
+            $start = microtime(true);
+            $name = 'getAllKeys';
+            $result = $this->memcached->getAllKeys();
+            $time = microtime(true) - $start;
+            $this->calls[] = (object) compact('start', 'time', 'name', 'arguments', 'result');
+            return $result;
+        }
         public function getMulti( array $keys, &$cas_tokens = null, $flags = null, &$udf_flags = null ) {
             if (!$this->logging) return $this->memcached->getMulti($keys,$cas_tokens,$flags,$udf_flags);
             $start = microtime(true);

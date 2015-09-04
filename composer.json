@@ -17,7 +17,7 @@
 	],
 	"replace" : {
 		"leaseweb/memcache-bundle": "self.version"
-	}
+	},
 	"require" : {
 		"php" : ">=5.3.2",
 		"symfony/framework-bundle" : ">=2.1",

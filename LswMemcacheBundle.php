@@ -2,8 +2,8 @@
 
 namespace Lsw\MemcacheBundle;
 
+use Lsw\MemcacheBundle\DependencyInjection\Compiler\OverrideDoctrineMemcachedCache;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
-use Lsw\MemcacheBundle\DependencyInjection\LswMemcacheExtension;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Lsw\MemcacheBundle\DependencyInjection\Compiler\EnableSessionSupport;
 
@@ -22,5 +22,6 @@ class LswMemcacheBundle extends Bundle
         parent::build($container);
 
         $container->addCompilerPass(new EnableSessionSupport());
+        $container->addCompilerPass(new OverrideDoctrineMemcachedCache());
     }
 }

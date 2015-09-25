@@ -19,19 +19,22 @@ use Lsw\MemcacheBundle\Cache\MemcacheInterface;
 class MemcachedCache extends CacheProvider
 {
     /**
-     * @var MemcacheInterface|null
+     * @var MemcacheInterface|\Memcached|null
      */
     private $memcached;
 
     /**
      * Sets the memcache instance to use.
      *
-     * @param MemcacheInterface $memcached
+     * @param MemcacheInterface|\Memcached $memcached
      *
      * @return void
      */
-    public function setMemcached(MemcacheInterface $memcached)
+    public function setMemcached($memcached)
     {
+        if(!$memcached instanceof \Memcached and !$memcached instanceof MemcacheInterface) {
+            throw new \RuntimeException('$memcached must be an instance of \Memcached or MemcacheInterface');
+        }
         $this->memcached = $memcached;
     }
 

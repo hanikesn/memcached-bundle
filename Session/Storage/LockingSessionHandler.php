@@ -1,6 +1,10 @@
 <?php
 namespace Lsw\MemcacheBundle\Session\Storage;
 
+use Lsw\MemcacheBundle\Cache\MemcacheInterface;
+use MFB\Bundle\TranslationBundle\Event\Adapter\Memcache;
+use Psr\Log\InvalidArgumentException;
+
 /**
  * LockingSessionHandler.
  *
@@ -45,7 +49,7 @@ class LockingSessionHandler implements \SessionHandlerInterface
     private $lockMaxWait;
 
     /**
-     * @var \Memcached Memcached driver.
+     * @var MemcacheInterface|\Memcached Memcached driver.
      */
     private $memcached;
 
@@ -66,13 +70,16 @@ class LockingSessionHandler implements \SessionHandlerInterface
      *  * prefix: The prefix to use for the memcached keys in order to avoid collision
      *  * expiretime: The time to live in seconds
      *
-     * @param \Memcached $memcached A \Memcached instance
+     * @param MemcacheInterface|\Memcached $memcached A \Memcached instance
      * @param array      $options   An associative array of Memcached options
      *
      * @throws \InvalidArgumentException When unsupported options are passed
      */
-    public function __construct(\Memcached $memcached, array $options = array())
+    public function __construct($memcached, array $options = array())
     {
+        if(!$memcached instanceof \Memcached and !$memcached instanceof MemcacheInterface) {
+            throw new \RuntimeException('$memcached must be an instance of \Memcached or MemcacheInterface');
+        }
         $this->memcached = $memcached;
 
         if ($diff = array_diff(array_keys($options), array('prefix', 'expiretime', 'locking', 'spin_lock_wait', 'lock_max_wait'))) {

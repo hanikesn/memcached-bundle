@@ -14,7 +14,7 @@ class OverrideDoctrineMemcachedCache implements CompilerPassInterface
      */
     public function process(ContainerBuilder $container)
     {
-        if($container->has('doctrine_cache.memcached.class') &&
+        if($container->hasParameter('doctrine_cache.memcached.class') &&
             $container->getParameter('doctrine_cache.memcached.class') === 'Doctrine\Common\Cache\MemcachedCache') {
             $container->setParameter('doctrine_cache.memcached.class', 'Lsw\MemcacheBundle\Doctrine\Cache\MemcachedCache');
         }
